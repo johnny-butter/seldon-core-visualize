@@ -17,7 +17,15 @@ type DrawInferenceGraph struct {
 }
 
 func (self *DrawInferenceGraph) Draw() {
-	self.DrawRequestEdge(self.Nodes[0])
+	var topNode SeldonCoreNode
+	for _, n := range self.Nodes {
+		if n.TYPE != "OUTPUT_TRANSFORMER" || len(self.Nodes) == 1 {
+			topNode = n
+			break
+		}
+	}
+
+	self.DrawRequestEdge(topNode)
 
 	for _, node := range self.Nodes {
 		args := []reflect.Value{reflect.ValueOf(node)}
@@ -29,9 +37,11 @@ func (self *DrawInferenceGraph) Draw() {
 	self.DrawResponseEdge()
 }
 
-func (self *DrawInferenceGraph) DrawEdge(head SeldonCoreNode, tail SeldonCoreNode) {
-	self.Graph.CreateEdge("", head.node, tail.node)
+func (self *DrawInferenceGraph) DrawEdge(head SeldonCoreNode, tail SeldonCoreNode) *cgraph.Edge {
+	edge, _ := self.Graph.CreateEdge("", head.node, tail.node)
 	self.HeadNodes = append(self.HeadNodes, head)
+
+	return edge
 }
 
 func (self *DrawInferenceGraph) DrawRequestEdge(n SeldonCoreNode) {
@@ -75,23 +85,34 @@ func (self *DrawInferenceGraph) DrawResponseEdge() {
 	}
 
 	for _, node := range none_head_nodes {
-		self.DrawEdge(node, rn)
-	}
-}
-
-func (self *DrawInferenceGraph) DrawRouterEdge(n SeldonCoreNode) {
-	for _, child := range n.CHILDREN {
-		if child.TYPE == "OUTPUT_TRANSFORMER" {
-			self.DrawEdge(n, child.CHILDREN[0])
-		} else {
-			self.DrawEdge(n, child)
+		if !node.noResp {
+			self.DrawEdge(node, rn)
 		}
 	}
 }
 
+func (self *DrawInferenceGraph) DrawRouterEdge(n SeldonCoreNode) {
+	for i, child := range n.CHILDREN {
+		var edge *cgraph.Edge
+		if child.TYPE == "OUTPUT_TRANSFORMER" {
+			edge = self.DrawEdge(n, child.CHILDREN[0])
+		} else {
+			edge = self.DrawEdge(n, child)
+		}
+
+		label := fmt.Sprintf("option[%d]", i)
+
+		edge.SetLabel(label)
+	}
+}
+
 func (self *DrawInferenceGraph) DrawCombinerEdge(n SeldonCoreNode) {
-	for _, child := range n.CHILDREN {
-		self.DrawEdge(child, n)
+	for i, child := range n.CHILDREN {
+		edge := self.DrawEdge(child, n)
+		label := fmt.Sprintf("element[%d]", i)
+
+		edge.SetDir(cgraph.BothDir)
+		edge.SetLabel(label)
 	}
 
 }
