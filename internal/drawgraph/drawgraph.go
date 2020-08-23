@@ -37,9 +37,11 @@ func (self *DrawInferenceGraph) Draw() {
 	self.DrawResponseEdge()
 }
 
-func (self *DrawInferenceGraph) DrawEdge(head SeldonCoreNode, tail SeldonCoreNode) {
-	self.Graph.CreateEdge("", head.node, tail.node)
+func (self *DrawInferenceGraph) DrawEdge(head SeldonCoreNode, tail SeldonCoreNode) *cgraph.Edge {
+	edge, _ := self.Graph.CreateEdge("", head.node, tail.node)
 	self.HeadNodes = append(self.HeadNodes, head)
+
+	return edge
 }
 
 func (self *DrawInferenceGraph) DrawRequestEdge(n SeldonCoreNode) {
@@ -90,18 +92,27 @@ func (self *DrawInferenceGraph) DrawResponseEdge() {
 }
 
 func (self *DrawInferenceGraph) DrawRouterEdge(n SeldonCoreNode) {
-	for _, child := range n.CHILDREN {
+	for i, child := range n.CHILDREN {
+		var edge *cgraph.Edge
 		if child.TYPE == "OUTPUT_TRANSFORMER" {
-			self.DrawEdge(n, child.CHILDREN[0])
+			edge = self.DrawEdge(n, child.CHILDREN[0])
 		} else {
-			self.DrawEdge(n, child)
+			edge = self.DrawEdge(n, child)
 		}
+
+		label := fmt.Sprintf("option[%d]", i)
+
+		edge.SetLabel(label)
 	}
 }
 
 func (self *DrawInferenceGraph) DrawCombinerEdge(n SeldonCoreNode) {
-	for _, child := range n.CHILDREN {
-		self.DrawEdge(child, n)
+	for i, child := range n.CHILDREN {
+		edge := self.DrawEdge(child, n)
+		label := fmt.Sprintf("element[%d]", i)
+
+		edge.SetDir(cgraph.BothDir)
+		edge.SetLabel(label)
 	}
 
 }
