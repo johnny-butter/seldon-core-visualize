@@ -83,7 +83,9 @@ func (self *DrawInferenceGraph) DrawResponseEdge() {
 	}
 
 	for _, node := range none_head_nodes {
-		self.DrawEdge(node, rn)
+		if !node.noResp {
+			self.DrawEdge(node, rn)
+		}
 	}
 }
 
