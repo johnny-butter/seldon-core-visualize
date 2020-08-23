@@ -17,7 +17,15 @@ type DrawInferenceGraph struct {
 }
 
 func (self *DrawInferenceGraph) Draw() {
-	self.DrawRequestEdge(self.Nodes[0])
+	var topNode SeldonCoreNode
+	for _, n := range self.Nodes {
+		if n.TYPE != "OUTPUT_TRANSFORMER" || len(self.Nodes) == 1 {
+			topNode = n
+			break
+		}
+	}
+
+	self.DrawRequestEdge(topNode)
 
 	for _, node := range self.Nodes {
 		args := []reflect.Value{reflect.ValueOf(node)}
