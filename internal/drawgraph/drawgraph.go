@@ -94,8 +94,11 @@ func (self *DrawInferenceGraph) DrawResponseEdge() {
 func (self *DrawInferenceGraph) DrawRouterEdge(n SeldonCoreNode) {
 	for i, child := range n.CHILDREN {
 		var edge *cgraph.Edge
+
 		if child.TYPE == "OUTPUT_TRANSFORMER" {
-			edge = self.DrawEdge(n, child.CHILDREN[0])
+			sn := self.GetRouterConnectNode(child)
+
+			edge = self.DrawEdge(n, sn)
 		} else {
 			edge = self.DrawEdge(n, child)
 		}
@@ -104,6 +107,19 @@ func (self *DrawInferenceGraph) DrawRouterEdge(n SeldonCoreNode) {
 
 		edge.SetLabel(label)
 	}
+}
+
+func (self *DrawInferenceGraph) GetRouterConnectNode(n SeldonCoreNode) (sn SeldonCoreNode) {
+	// Handle the event that child of "ROUTER" connects to "OUTPUT_TRANSFORMER"
+	for _, child := range n.CHILDREN {
+		if child.TYPE == "OUTPUT_TRANSFORMER" {
+			sn = self.GetRouterConnectNode(child)
+		} else {
+			sn = child
+			break
+		}
+	}
+	return
 }
 
 func (self *DrawInferenceGraph) DrawCombinerEdge(n SeldonCoreNode) {
