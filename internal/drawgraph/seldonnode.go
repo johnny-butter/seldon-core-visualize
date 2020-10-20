@@ -7,39 +7,31 @@ import (
 )
 
 type SeldonCoreNode struct {
-	NAME     string
-	TYPE     string
-	CHILDREN []SeldonCoreNode
+	Name     string
+	Type     string
+	Children []SeldonCoreNode
 	node     *cgraph.Node
-	noResp   bool
 }
 
 func (self *SeldonCoreNode) Build(g *cgraph.Graph) SeldonCoreNode {
 	var err error
-	self.node, err = g.CreateNode(self.NAME)
+	self.node, err = g.CreateNode(self.Name)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 
 	self.Dress()
 
-	if self.TYPE == "COMBINER" {
-		// Prevent COMBINER children connect to Response node,
-		// e.g. [ combiner [ transformer[ model-a ], model-b ] ],
-		//      model-a should not connect to Response node
-		self.PreventChildrenConnectResponseNode()
-	}
-
-	if len(self.CHILDREN) > 0 {
-		for index, child := range self.CHILDREN {
-			self.CHILDREN[index] = child.Build(g)
+	if len(self.Children) > 0 {
+		for index, child := range self.Children {
+			self.Children[index] = child.Build(g)
 		}
 	}
 	return *self
 }
 
 func (self *SeldonCoreNode) Dress() {
-	switch self.TYPE {
+	switch self.Type {
 	case "MODEL":
 		self.node = self.node.SetColor("chocolate1")
 		self.node = self.node.SetShape(cgraph.OctagonShape)
@@ -58,14 +50,5 @@ func (self *SeldonCoreNode) Dress() {
 	case "COMBINER":
 		self.node = self.node.SetColor("turquoise")
 		self.node = self.node.SetShape(cgraph.DoubleOctagonShape)
-	}
-}
-
-func (self *SeldonCoreNode) PreventChildrenConnectResponseNode() {
-	for i, child := range self.CHILDREN {
-		child.noResp = true
-		child.PreventChildrenConnectResponseNode()
-
-		self.CHILDREN[i] = child
 	}
 }
