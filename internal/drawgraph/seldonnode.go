@@ -11,7 +11,6 @@ type SeldonCoreNode struct {
 	TYPE     string
 	CHILDREN []SeldonCoreNode
 	node     *cgraph.Node
-	noResp   bool
 }
 
 func (self *SeldonCoreNode) Build(g *cgraph.Graph) SeldonCoreNode {
@@ -22,13 +21,6 @@ func (self *SeldonCoreNode) Build(g *cgraph.Graph) SeldonCoreNode {
 	}
 
 	self.Dress()
-
-	if self.TYPE == "COMBINER" {
-		// Prevent COMBINER children connect to Response node,
-		// e.g. [ combiner [ transformer[ model-a ], model-b ] ],
-		//      model-a should not connect to Response node
-		self.PreventChildrenConnectResponseNode()
-	}
 
 	if len(self.CHILDREN) > 0 {
 		for index, child := range self.CHILDREN {
@@ -58,14 +50,5 @@ func (self *SeldonCoreNode) Dress() {
 	case "COMBINER":
 		self.node = self.node.SetColor("turquoise")
 		self.node = self.node.SetShape(cgraph.DoubleOctagonShape)
-	}
-}
-
-func (self *SeldonCoreNode) PreventChildrenConnectResponseNode() {
-	for i, child := range self.CHILDREN {
-		child.noResp = true
-		child.PreventChildrenConnectResponseNode()
-
-		self.CHILDREN[i] = child
 	}
 }
