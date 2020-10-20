@@ -34,15 +34,15 @@ func (self *DrawInferenceGraph) Draw() {
 // https://github.com/SeldonIO/seldon-core/blob/master/engine/src/main/java/io/seldon/engine/predictors/PredictiveUnitBean.java
 // -> public Future<SeldonMessage> getOutputAsync
 func (self *DrawInferenceGraph) GetApiSequence(n SeldonCoreNode) (s []interface{}) {
-	if n.TYPE == "TRANSFORMER" || n.TYPE == "MODEL" || n.TYPE == "ROUTER" {
+	if n.Type == "TRANSFORMER" || n.Type == "MODEL" || n.Type == "ROUTER" {
 		s = append(s, n)
 	}
 
 	var children_s [][]interface{}
-	for _, cn := range n.CHILDREN {
+	for _, cn := range n.Children {
 		child_s := self.GetApiSequence(cn)
 
-		if len(n.CHILDREN) > 1 {
+		if len(n.Children) > 1 {
 			children_s = append(children_s, child_s)
 		} else {
 			s = append(s, child_s...)
@@ -53,7 +53,7 @@ func (self *DrawInferenceGraph) GetApiSequence(n SeldonCoreNode) (s []interface{
 		s = append(s, children_s)
 	}
 
-	if n.TYPE == "COMBINER" || n.TYPE == "OUTPUT_TRANSFORMER" {
+	if n.Type == "COMBINER" || n.Type == "OUTPUT_TRANSFORMER" {
 		s = append(s, n)
 	}
 
@@ -113,8 +113,8 @@ func (self *DrawInferenceGraph) DrawEdge(head SeldonCoreNode, tail SeldonCoreNod
 func (self *DrawInferenceGraph) CreateNode(name string, shape cgraph.Shape) SeldonCoreNode {
 	var err error
 
-	sn := SeldonCoreNode{NAME: name}
-	sn.node, err = self.Graph.CreateNode(sn.NAME)
+	sn := SeldonCoreNode{Name: name}
+	sn.node, err = self.Graph.CreateNode(sn.Name)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
