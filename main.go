@@ -12,18 +12,18 @@ import (
 )
 
 type SeldonDeployment struct {
-	SPEC struct {
-		NAME       string
-		PREDICTORS []struct {
-			GRAPH drawgraph.SeldonCoreNode
+	Spec struct {
+		Name       string
+		Predictors []struct {
+			Graph drawgraph.SeldonCoreNode
 		}
 	}
 }
 
 func BuildNodes(n drawgraph.SeldonCoreNode, ns []drawgraph.SeldonCoreNode) []drawgraph.SeldonCoreNode {
 	ns = append(ns, n)
-	if len(n.CHILDREN) > 0 {
-		for _, child := range n.CHILDREN {
+	if len(n.Children) > 0 {
+		for _, child := range n.Children {
 			ns = BuildNodes(child, ns)
 		}
 	}
@@ -61,9 +61,9 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 
-	nodes := BuildNodes(sd.SPEC.PREDICTORS[0].GRAPH.Build(graph), nil)
+	nodes := BuildNodes(sd.Spec.Predictors[0].Graph.Build(graph), nil)
 
-	d := &drawgraph.DrawInferenceGraph{Graph: graph, Nodes: nodes}
+	d := &drawgraph.DrawInferenceGraph{Graph: graph, RootNode: nodes[0]}
 	d.Draw()
 
 	defer func() {
