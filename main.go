@@ -63,7 +63,7 @@ func main() {
 
 	nodes := BuildNodes(sd.SPEC.PREDICTORS[0].GRAPH.Build(graph), nil)
 
-	d := &drawgraph.DrawInferenceGraph{Graph: graph, Nodes: nodes}
+	d := &drawgraph.DrawInferenceGraph{Graph: graph, RootNode: nodes[0]}
 	d.Draw()
 
 	defer func() {
