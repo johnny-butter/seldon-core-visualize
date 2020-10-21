@@ -74,7 +74,7 @@ func (self *DrawInferenceGraph) ConcatNodes(h interface{}, e interface{}) {
 						self.ConcatNodes(ee[i-1], eee)
 						continue
 					}
-					// Only connect to first one
+					// Outside node connect to first one
 					switch eee := eee.(type) {
 					case SeldonCoreNode:
 						self.DrawEdge(h, eee)
@@ -89,13 +89,20 @@ func (self *DrawInferenceGraph) ConcatNodes(h interface{}, e interface{}) {
 		}
 	case [][]interface{}:
 		for _, hh := range h {
-			// Only use last one to connect
-			switch hhh := hh[len(hh)-1].(type) {
-			case SeldonCoreNode:
-				self.ConcatNodes(hhh, e)
-			default:
-				fmt.Println("Unexpected type of hhh")
-				fmt.Println(hhh)
+			for i, hhh := range hh {
+				// Last one connect to outside node
+				if i == len(hh)-1 {
+					switch hhh := hhh.(type) {
+					case SeldonCoreNode:
+						self.ConcatNodes(hhh, e)
+					default:
+						fmt.Println("Unexpected type of hhh")
+						fmt.Println(hhh)
+					}
+				} else {
+					// Nested concat
+					self.ConcatNodes(hhh, hh[i+1])
+				}
 			}
 		}
 	default:
