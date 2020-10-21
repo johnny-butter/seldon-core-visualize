@@ -8,15 +8,17 @@ Turn [seldondeployment.yml](example/seldondeployment.yml) into ![flowchart.examp
 
 ## Start Project
 
-- Start the app
+- Check usage
 
 ```shell
-go run main.go
+go run main.go -h
 ```
 
-- Enter the `seldondeployment.yml` path
-- Enter the name (path) of output flowchart (.png)
-- Get the flowchart.png in current folder
+- Execute transformation
+
+```shell
+go run main.go -o flowchart.png path/to/sdep.yml
+```
 
 ## Build Project
 
