@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"internal/drawgraph"
 
@@ -31,17 +33,31 @@ func BuildNodes(n drawgraph.SeldonCoreNode, ns []drawgraph.SeldonCoreNode) []dra
 	return ns
 }
 
-var DeploymentPath string
-var OutputFilename string
+var (
+	sdepPath    string
+	outFileName string
+)
+
+// Init CLI params
+func init() {
+	flag.StringVar(&outFileName, "o", "flowchart.png", "`output` Output flowchart name")
+
+	flag.Usage = usage
+}
+
+// Show the usage
+func usage() {
+	fmt.Fprintln(os.Stderr, "Usage: draw-flowchart [OPTIONS] SDEP_PATH")
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "OPTIONS:")
+	flag.PrintDefaults()
+}
 
 func main() {
-	fmt.Printf("Enter deployment path (/path/to/name.yml): ")
-	fmt.Scanln(&DeploymentPath)
-
-	fmt.Printf("Enter output filename (name.png): ")
-	fmt.Scanln(&OutputFilename)
-	if OutputFilename == "" {
-		OutputFilename = "flowchart.png"
+	flag.Parse()
+	sdepPath = flag.Arg(0)
+	if sdepPath == "" {
+		log.Fatalf("Error: Missing Seldon Deployment path")
 	}
 
 	sd := SeldonDeployment{}
@@ -52,12 +68,12 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 
-	yaml_file, err := ioutil.ReadFile(DeploymentPath)
+	yamlFile, err := ioutil.ReadFile(sdepPath)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 
-	if err := yaml.Unmarshal([]byte(yaml_file), &sd); err != nil {
+	if err := yaml.Unmarshal([]byte(yamlFile), &sd); err != nil {
 		log.Fatalf("error: %v", err)
 	}
 
@@ -73,5 +89,5 @@ func main() {
 		g.Close()
 	}()
 
-	g.RenderFilename(graph, "png", OutputFilename)
+	g.RenderFilename(graph, "png", outFileName)
 }
